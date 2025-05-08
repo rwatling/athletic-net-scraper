@@ -4,12 +4,14 @@ import csv
 import sys
 
 # Arg parsing
-if len(sys.argv) < 2:
-    print("Usage: python scraper.py <team_id_csv>")
+if len(sys.argv) < 3:
+    print("Usage: python scraper.py <team_id_csv> <year>")
     exit(0)
 
-# Read input csv file
 file_path = sys.argv[1]
+year = sys.argv[2]
+
+# Read input csv file
 team_dict={}
 try:
     with open(file_path, 'r') as file:
@@ -36,7 +38,7 @@ events.append('300m Hurdles - 36"')
 # For each team ID in the list of team IDs
 conference_table = []
 for team in team_dict.keys():
-    url = f'https://www.athletic.net/team/{team}/track-and-field-outdoor/2025/event-records'
+    url = f'https://www.athletic.net/team/{team}/track-and-field-outdoor/{year}/event-records'
 
     # Playwright to load dynamically populated tables
     # Playwright will wait until the page confirms it has loaded
