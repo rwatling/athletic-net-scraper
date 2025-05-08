@@ -3,13 +3,12 @@ import pandas as pd
 import csv
 import sys
 
-#team_ids = ['12281', '12291', '12294', '12295', '12289', '12293', '12299' ]
-#team_dict = {'12281':'Edison', '12291':'Camden', '12294':'South', '12295':'Southwest', '12289':'North', '12293':'Roosevelt', '12299':'Washburn'}
-
+# Arg parsing
 if len(sys.argv) < 2:
     print("Usage: python scraper.py <team_id_csv>")
     exit(0)
 
+# Read input csv file
 file_path = sys.argv[1]
 team_dict={}
 try:
