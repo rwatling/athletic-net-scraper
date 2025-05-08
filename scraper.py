@@ -4,12 +4,14 @@ import csv
 import sys
 
 # Arg parsing
-if len(sys.argv) < 3:
-    print("Usage: python scraper.py <team_id_csv> <year>")
+if len(sys.argv) < 4:
+    print("Usage: python scraper.py <team_id_csv> <year> <top n on team>")
+    print("Example: python scraper.py section.in 2025 3")
     exit(0)
 
 file_path = sys.argv[1]
 year = sys.argv[2]
+max_athletes = int(sys.argv[3])
 
 # Read input csv file
 team_dict={}
@@ -63,7 +65,7 @@ for team in team_dict.keys():
         df = pd.DataFrame(table)
         for i in range(len(df)):
             if df.iloc[i,0] in events:
-                for j in range(1,3):
+                for j in range(1,max_athletes+1):
                     if df.iloc[i+j][2]:
                         new_row = [df.iloc[i][0], df.iloc[i+j][0], df.iloc[i+j][2], team_dict[team]]
                         conference_table.append(new_row)
