@@ -1,0 +1,58 @@
+from playwright.sync_api import sync_playwright
+import pandas as pd
+
+# TODO: Ingest team IDs and team names from config files
+team_ids = ['12281', '12291', '12294', '12295', '12289', '12293', '12299' ]
+team_dict = {'12281':'Edison', '12291':'Camden', '12294':'South', '12295':'Southwest', '12289':'North', '12293':'Roosevelt', '12299':'Washburn'}
+
+# Populate running events
+events = ['100', '200', '400', '800', '1600', '3200']
+events = [ event + ' Meters' for event in events]
+events.append('300m Hurdles - 30"')
+events.append('100m Hurdles - 33"')
+events.append('110m Hurdles - 39"')
+events.append('300m Hurdles - 36"')
+
+# For each team ID in the list of team IDs
+conference_table = []
+for team in team_ids:
+    url = f'https://www.athletic.net/team/{team}/track-and-field-outdoor/2025/event-records'
+
+    # Playwright to load dynamically populated tables
+    # Playwright will wait until the page confirms it has loaded
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(url, wait_until='load')
+        page.wait_for_selector('table')
+
+        # Select table elements. In this case, it is all results for all events
+        rows = page.query_selector_all('table tbody tr')
+        table = []
+
+        # For each row in the table, get the last 6 plaintext fields
+        for row in rows:
+            cols = row.query_selector_all('td')
+            data = [col.inner_text().strip() for col in cols]
+            table.append(data[-6:])
+
+        # Convert table to dataframe to make use of iloc
+        # Gather top 2 in each event and if time is null ignore result
+        df = pd.DataFrame(table)
+        for i in range(len(df)):
+            if df.iloc[i,0] in events:
+                for j in range(1,3):
+                    if df.iloc[i+j][2]:
+                        new_row = [df.iloc[i][0], df.iloc[i+j][0], df.iloc[i+j][2], team_dict[team]]
+                        conference_table.append(new_row)
+        browser.close()
+
+# Assemble dataframe from conference table list and remove duplicates
+conf_df = pd.DataFrame(conference_table)
+conf_df = conf_df.drop_duplicates()
+conf_df.columns = ['Event', 'Name', 'Time', 'School']
+
+# Print dataframe by event sorted by Time as string which is a bit flaky
+for event in events:
+    print('*' * 80)
+    print((conf_df[conf_df['Event'] == event].sort_values(by='Time')).to_string(index=False))
