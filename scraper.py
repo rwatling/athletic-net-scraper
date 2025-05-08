@@ -1,9 +1,30 @@
 from playwright.sync_api import sync_playwright
 import pandas as pd
+import csv
+import sys
 
-# TODO: Ingest team IDs and team names from config files
-team_ids = ['12281', '12291', '12294', '12295', '12289', '12293', '12299' ]
-team_dict = {'12281':'Edison', '12291':'Camden', '12294':'South', '12295':'Southwest', '12289':'North', '12293':'Roosevelt', '12299':'Washburn'}
+#team_ids = ['12281', '12291', '12294', '12295', '12289', '12293', '12299' ]
+#team_dict = {'12281':'Edison', '12291':'Camden', '12294':'South', '12295':'Southwest', '12289':'North', '12293':'Roosevelt', '12299':'Washburn'}
+
+if len(sys.argv) < 2:
+    print("Usage: python scraper.py <team_id_csv>")
+    exit(0)
+
+file_path = sys.argv[1]
+team_dict={}
+try:
+    with open(file_path, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) == 2:
+                key, value = row
+                team_dict[key] = value
+except FileNotFoundError:
+    print(f"Error: File not found at {file_path}")
+    exit(1)
+except Exception as e:
+    print(f"An error occurred: {e}")
+    exit(1)
 
 # Populate running events
 events = ['100', '200', '400', '800', '1600', '3200']
@@ -15,7 +36,7 @@ events.append('300m Hurdles - 36"')
 
 # For each team ID in the list of team IDs
 conference_table = []
-for team in team_ids:
+for team in team_dict.keys():
     url = f'https://www.athletic.net/team/{team}/track-and-field-outdoor/2025/event-records'
 
     # Playwright to load dynamically populated tables
