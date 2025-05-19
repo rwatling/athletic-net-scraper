@@ -16,6 +16,7 @@ access to this public respository.
 
 * Usage `python scraper.py <team_id_csv> <year> <top n on team>`
 * Example `python scraper.py section.in 2025 3`
+* Install the dependencies below with `pip install -r requirements.txt`
 * Dependencies
     * python 3.12.9
     * pip 23.3.2
