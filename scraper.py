@@ -53,12 +53,25 @@ for team in team_dict.keys():
         # Select table elements. In this case, it is all results for all events
         rows = page.query_selector_all('table tbody tr')
         table = []
+        gender = 0
 
         # For each row in the table, get the last 6 plaintext fields
         for row in rows:
             cols = row.query_selector_all('td')
             data = [col.inner_text().strip() for col in cols]
-            table.append(data[-6:])
+
+            # Alternate gender when we encounter first event in the list
+            if '100 Meters' in data:
+                gender += 1
+
+            # Gather columns of interest and infer gender
+            data = data[-6:]
+            if gender % 2 == 1:
+                data.append('Men')
+            else:
+                data.append('Women')
+
+            table.append(data)
 
         # Convert table to dataframe to make use of iloc
         # Gather top 2 in each event and if time is null ignore result
@@ -67,16 +80,19 @@ for team in team_dict.keys():
             if df.iloc[i,0] in events:
                 for j in range(1,max_athletes+1):
                     if df.iloc[i+j][2]:
-                        new_row = [df.iloc[i][0], df.iloc[i+j][0], df.iloc[i+j][2], team_dict[team]]
+                        new_row = [df.iloc[i][0], df.iloc[i][1], df.iloc[i+j][0], df.iloc[i+j][2], team_dict[team]]
                         conference_table.append(new_row)
         browser.close()
 
 # Assemble dataframe from conference table list and remove duplicates
 conf_df = pd.DataFrame(conference_table)
 conf_df = conf_df.drop_duplicates()
-conf_df.columns = ['Event', 'Name', 'Time', 'School']
+conf_df.columns = ['Event', 'Gender', 'Name', 'Time', 'School']
 
 # Print dataframe by event sorted by Time as string which is a bit flaky
-for event in events:
-    print('*' * 80)
-    print((conf_df[conf_df['Event'] == event].sort_values(by='Time')).to_string(index=False))
+for g in ['Men','Women']:
+    for event in events:
+        print_df = conf_df[(conf_df['Event'] == event) & (conf_df['Gender'] ==g)]
+        if not print_df.empty:
+            print('*' * 80)
+            print(print_df.sort_values(by='Time').to_string(index=False))
